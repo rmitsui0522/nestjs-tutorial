@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  db:
+    container_name: mysql
+    build:
+      context: ./mysql
+      args:
+        MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+        MYSQL_DATABASE: $MYSQL_DATABASE
+        MYSQL_USER: $MYSQL_USER
+        MYSQL_PASSWORD: $MYSQL_PASSWORD
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/tmp:/var/lib/mysql
+
+  myadmin:
+    container_name: myadmin
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: user
+      PMA_PASSWORD: password
+    ports:
+      - 4000:80
