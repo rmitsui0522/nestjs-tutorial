@@ -3,6 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+import { UserEntity } from './users/entities/user.entity';
+import { DataSource } from 'typeorm';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,13 +16,16 @@ import { UsersModule } from './users/users.module';
       username: 'user',
       password: 'password',
       database: 'dev',
-      entities: ['dist/entities/**/*.entity.js'],
-      migrations: ['dist/migrations/**/*.js'],
+      entities: [UserEntity],
       logging: false,
+      synchronize: true,
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {}
+}
