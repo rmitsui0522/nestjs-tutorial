@@ -31,9 +31,8 @@ describe('UsersService', () => {
 
   it('should create a user', () => {
     const dto: CreateUserDto = {
-      userId: user.userId,
+      userName: user.userName,
       email: user.email,
-      nickname: user.nickname,
       password: user.password,
     };
     repository.findOne.mockReturnValue(null);
@@ -45,6 +44,6 @@ describe('UsersService', () => {
   it('should find a user', () => {
     repository.findOne.mockReturnValue(user);
 
-    expect(service.findOne(user.userId)).toEqual(user);
+    expect(service.findOne(user.userName)).toEqual(user);
   });
 });

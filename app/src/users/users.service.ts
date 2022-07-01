@@ -12,15 +12,18 @@ export class UsersService {
     private repo: Repository<UserEntity>,
   ) {}
 
-  public create(dto: CreateUserDto) {
+  public async create(dto: CreateUserDto) {
     const user = new User({
-      userId: dto.userId,
+      userName: dto.userName,
       email: dto.email,
-      nickname: dto.nickname,
       password: dto.password,
     });
-    if (this.isExists(user)) {
-      throw new InternalServerErrorException("Duplicated 'UserId' or 'Email'");
+
+    const duplicate = await this.isExists(user);
+    if (duplicate) {
+      throw new InternalServerErrorException(
+        `Duplicated '${duplicate}'. Record '${duplicate}' must be unique.`,
+      );
     }
 
     return this.repo.save(user);
@@ -30,27 +33,37 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  public findOne(userId: string) {
-    const user = this.repo.findOne({ where: { userId } });
+  public findOne(userName: string) {
+    const user = this.repo.findOne({ where: { userName } });
     return user;
   }
 
-  public update(userId: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a ${userId} user`;
+  public update(userName: string, updateUserDto: UpdateUserDto) {
+    return `This action updates a ${userName} user`;
   }
 
-  public remove(userId: string) {
-    return `This action removes a ${userId} user`;
+  public remove(userName: string) {
+    return `This action removes a ${userName} user`;
   }
 
-  private isExists(user: User): boolean {
-    const other =
-      this.repo.findOne({
-        where: { userId: user.userId },
-      }) ||
-      this.repo.findOne({
-        where: { email: user.email },
-      });
-    return other !== null;
+  private async isExists(user: User): Promise<string | null> {
+    let other: UserEntity;
+    other = await this.repo.findOne({
+      where: { userName: user.userName },
+    });
+
+    if (other) {
+      return 'UserName';
+    }
+
+    other = await this.repo.findOne({
+      where: { email: user.email },
+    });
+
+    if (other) {
+      return 'Email';
+    }
+
+    return null;
   }
 }

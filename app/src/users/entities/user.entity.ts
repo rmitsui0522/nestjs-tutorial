@@ -5,7 +5,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Email, NickName, UserId } from '../valueObjects';
+import { Email } from '../valueObjects/Email';
+import { UserName } from '../valueObjects/UserName';
 
 @Entity('user')
 export class UserEntity {
@@ -13,16 +14,13 @@ export class UserEntity {
   readonly id: number;
 
   @Column({ unique: true })
-  readonly userId: string;
+  readonly userName: string;
 
   @Column({ unique: true })
   readonly email: string;
 
   @Column()
   readonly password: string;
-
-  @Column({ nullable: true })
-  readonly nickname: string;
 
   @CreateDateColumn()
   readonly created_at?: Date;
@@ -32,17 +30,11 @@ export class UserEntity {
 }
 
 export class User extends UserEntity {
-  constructor(ctx: {
-    userId: string;
-    email: string;
-    nickname: string;
-    password: string;
-  }) {
+  constructor(ctx: { userName: string; email: string; password: string }) {
     super();
     Object.assign(this, {
-      userId: new UserId(ctx.userId).value(),
+      userName: new UserName(ctx.userName).value(),
       email: new Email(ctx.email).value(),
-      nickname: new NickName(ctx.nickname).value(),
       password: ctx.password,
     });
   }

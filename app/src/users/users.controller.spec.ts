@@ -32,6 +32,6 @@ describe('UsersController', () => {
 
   it('should find a user', () => {
     repository.findOne.mockReturnValue(user);
-    expect(controller.findOne(user.userId)).toEqual(user);
+    expect(controller.findOne(user.userName)).toEqual(user);
   });
 });

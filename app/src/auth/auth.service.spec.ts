@@ -35,7 +35,7 @@ describe('AuthService', () => {
 
     repository.findOne.mockReturnValue(user);
 
-    expect(await service.validateUser(user.userId, user.password)).toEqual(
+    expect(await service.validateUser(user.userName, user.password)).toEqual(
       others,
     );
   });
