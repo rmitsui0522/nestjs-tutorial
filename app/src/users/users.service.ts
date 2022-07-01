@@ -17,6 +17,7 @@ export class UsersService {
       userId: dto.userId,
       email: dto.email,
       nickname: dto.nickname,
+      password: dto.password,
     });
     if (this.isExists(user)) {
       throw new InternalServerErrorException("Duplicated 'UserId' or 'Email'");

@@ -18,6 +18,9 @@ export class UserEntity {
   @Column({ unique: true })
   readonly email: string;
 
+  @Column()
+  readonly password: string;
+
   @Column({ nullable: true })
   readonly nickname: string;
 
@@ -29,12 +32,18 @@ export class UserEntity {
 }
 
 export class User extends UserEntity {
-  constructor(ctx: { userId: string; email: string; nickname: string }) {
+  constructor(ctx: {
+    userId: string;
+    email: string;
+    nickname: string;
+    password: string;
+  }) {
     super();
     Object.assign(this, {
       userId: new UserId(ctx.userId).value(),
       email: new Email(ctx.email).value(),
       nickname: new NickName(ctx.nickname).value(),
+      password: ctx.password,
     });
   }
 }

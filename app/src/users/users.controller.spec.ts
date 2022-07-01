@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserEntity } from './entities/user.entity';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 import {
   MockType,
   repositoryMockFactory,
 } from '../test-util/repositoryMockFactory';
-import { UserEntity } from './entities/user.entity';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { user } from '../test-util/users.seed';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -30,12 +31,6 @@ describe('UsersController', () => {
   });
 
   it('should find a user', () => {
-    const user: UserEntity = {
-      id: 1,
-      userId: 'testUser',
-      nickname: 'test',
-      email: 'test@user.com',
-    };
     repository.findOne.mockReturnValue(user);
     expect(controller.findOne(user.userId)).toEqual(user);
   });

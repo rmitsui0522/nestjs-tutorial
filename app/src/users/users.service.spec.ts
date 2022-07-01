@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UsersService } from './users.service';
+import { UserEntity } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import {
   MockType,
   repositoryMockFactory,
 } from '../test-util/repositoryMockFactory';
-import { UsersService } from './users.service';
-import { UserEntity } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { user } from '../test-util/users.seed';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -28,18 +29,12 @@ describe('UsersService', () => {
     repository = module.get(getRepositoryToken(UserEntity));
   });
 
-  const user: UserEntity = {
-    id: 1,
-    userId: 'testuser',
-    nickname: 'test',
-    email: 'test@user.com',
-  };
-
   it('should create a user', () => {
     const dto: CreateUserDto = {
       userId: user.userId,
       email: user.email,
       nickname: user.nickname,
+      password: user.password,
     };
     repository.findOne.mockReturnValue(null);
     repository.save.mockReturnValue(user);
