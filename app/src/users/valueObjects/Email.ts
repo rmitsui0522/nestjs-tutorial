@@ -1,5 +1,5 @@
 export class Email {
-  private readonly _email: string;
+  private _email: string;
 
   constructor(email: string) {
     this._email = email;

@@ -1,7 +1,7 @@
 import { InternalServerErrorException } from '@nestjs/common';
 
 export class UserName {
-  private readonly _userName: string;
+  private _userName: string;
 
   constructor(userName: string) {
     if (userName.length < 8) {

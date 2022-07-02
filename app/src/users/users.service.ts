@@ -1,23 +1,25 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserEntity, User } from './entities/user.entity';
+import { UsersFactory } from './factory/users.factory';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private repo: Repository<UserEntity>,
+    private factory: UsersFactory,
   ) {}
 
-  public async create(dto: CreateUserDto) {
-    const user = new User({
-      userName: dto.userName,
-      email: dto.email,
-      password: dto.password,
-    });
+  public async create(dto: CreateUserDto): Promise<UserEntity> {
+    const user = await this.factory.build(dto);
 
     const duplicate = await this.isExists(user);
     if (duplicate) {
@@ -30,11 +32,29 @@ export class UsersService {
   }
 
   public findAll() {
-    return `This action returns all users`;
+    return this.repo.find({
+      select: ['id', 'userName', 'email', 'created_at', 'updated_at'],
+    });
   }
 
-  public findOne(userName: string) {
+  public findOne(userName: string): Promise<UserEntity | null> {
+    const user = this.repo.findOne({
+      select: ['id', 'userName', 'email', 'created_at', 'updated_at'],
+      where: { userName },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  public findOneWithPassword(userName: string): Promise<UserEntity | null> {
     const user = this.repo.findOne({ where: { userName } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 
@@ -46,12 +66,12 @@ export class UsersService {
     return `This action removes a ${userName} user`;
   }
 
-  private async isExists(user: User): Promise<string | null> {
+  private async isExists(user: UserEntity): Promise<string | null> {
     let other: UserEntity;
+
     other = await this.repo.findOne({
       where: { userName: user.userName },
     });
-
     if (other) {
       return 'UserName';
     }
@@ -59,7 +79,6 @@ export class UsersService {
     other = await this.repo.findOne({
       where: { email: user.email },
     });
-
     if (other) {
       return 'Email';
     }

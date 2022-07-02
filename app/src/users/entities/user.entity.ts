@@ -5,8 +5,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Email } from '../valueObjects/Email';
-import { UserName } from '../valueObjects/UserName';
 
 @Entity('user')
 export class UserEntity {
@@ -27,15 +25,4 @@ export class UserEntity {
 
   @UpdateDateColumn()
   readonly updated_at?: Date;
-}
-
-export class User extends UserEntity {
-  constructor(ctx: { userName: string; email: string; password: string }) {
-    super();
-    Object.assign(this, {
-      userName: new UserName(ctx.userName).value(),
-      email: new Email(ctx.email).value(),
-      password: ctx.password,
-    });
-  }
 }

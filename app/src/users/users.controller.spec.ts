@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { UsersFactory } from './factory/users.factory';
 import {
   MockType,
   repositoryMockFactory,
@@ -19,6 +20,7 @@ describe('UsersController', () => {
       controllers: [UsersController],
       providers: [
         UsersService,
+        UsersFactory,
         {
           provide: getRepositoryToken(UserEntity),
           useFactory: repositoryMockFactory,

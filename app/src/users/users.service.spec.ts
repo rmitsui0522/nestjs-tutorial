@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from './users.service';
+import { UsersFactory } from './factory/users.factory';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import {
@@ -18,6 +19,7 @@ describe('UsersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
+        UsersFactory,
         {
           provide: getRepositoryToken(UserEntity),
           useFactory: repositoryMockFactory,
@@ -29,16 +31,17 @@ describe('UsersService', () => {
     repository = module.get(getRepositoryToken(UserEntity));
   });
 
-  it('should create a user', () => {
+  it('should create a user', async () => {
     const dto: CreateUserDto = {
       userName: user.userName,
       email: user.email,
       password: user.password,
     };
+
     repository.findOne.mockReturnValue(null);
     repository.save.mockReturnValue(user);
 
-    expect(service.create(dto)).toEqual(user);
+    expect(await service.create(dto)).toEqual(user);
   });
 
   it('should find a user', () => {
