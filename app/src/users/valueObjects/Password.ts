@@ -15,14 +15,11 @@ export class Password {
     this._plainTextPassword = plainTextPassword;
   }
 
-  public async hashValue(): Promise<string> {
-    return await bcrypt.hash(this._plainTextPassword, this._saltOrRounds);
+  public hashValue(): Promise<string> {
+    return bcrypt.hash(this._plainTextPassword, this._saltOrRounds);
   }
 
-  public static async compare(
-    plainTextPassword: string,
-    hashedPassword: string,
-  ): Promise<boolean> {
-    return await bcrypt.compare(plainTextPassword, hashedPassword);
+  public compare(hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(this._plainTextPassword, hashedPassword);
   }
 }
