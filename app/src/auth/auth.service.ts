@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CustomClaims } from './jwt.claims';
+import { CustomClaims } from './jwt/claims';
 import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Password } from '../users/valueObjects/Password';
