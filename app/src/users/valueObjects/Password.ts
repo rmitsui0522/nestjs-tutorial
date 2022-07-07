@@ -1,8 +1,10 @@
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
+import { IValueObject } from '../../interface/valuObject.inyerface';
 
-export class Password {
-  private _plainTextPassword: string;
+export class Password implements IValueObject {
+  // private _plainTextPassword: string;
+  private _hashedPassword: string;
   private _saltOrRounds: number = 10;
 
   constructor(plainTextPassword: string) {
@@ -12,14 +14,25 @@ export class Password {
       );
     }
 
-    this._plainTextPassword = plainTextPassword;
+    // this._plainTextPassword = plainTextPassword;
+    this._hashedPassword = bcrypt.hashSync(
+      plainTextPassword,
+      this._saltOrRounds,
+    );
   }
 
-  public hashValue(): Promise<string> {
-    return bcrypt.hash(this._plainTextPassword, this._saltOrRounds);
+  public value(): string {
+    return this._hashedPassword;
   }
 
-  public compare(hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(this._plainTextPassword, hashedPassword);
+  // public hashValue(): Promise<string> {
+  //   return bcrypt.hash(this._plainTextPassword, this._saltOrRounds);
+  // }
+
+  public static compare(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ): boolean {
+    return bcrypt.compareSync(plainTextPassword, hashedPassword);
   }
 }

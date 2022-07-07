@@ -23,7 +23,7 @@ export class AuthService {
     pass: string,
   ): Promise<UserEntity | null> {
     const user = await this.usersService.findOneWithPassword(userName);
-    const isMatch = await new Password(pass).compare(user.password);
+    const isMatch = Password.compare(pass, user.password);
 
     if (user && isMatch) {
       const { password, ...result } = user;

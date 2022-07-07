@@ -1,4 +1,6 @@
-export class Email {
+import { IValueObject } from '../../interface/valuObject.inyerface';
+
+export class Email implements IValueObject {
   private _email: string;
 
   constructor(email: string) {

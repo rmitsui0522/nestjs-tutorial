@@ -10,7 +10,7 @@ export class UsersFactory {
   public async build(dto: CreateUserDto): Promise<UserEntity> {
     const userName = new UserName(dto.userName).value();
     const email = new Email(dto.email).value();
-    const password = await new Password(dto.password).hashValue();
+    const password = new Password(dto.password).value();
 
     return { id: null, userName, email, password };
   }

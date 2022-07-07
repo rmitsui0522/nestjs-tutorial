@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { AuthService } from '../auth.service';
 import { UsersService } from '../../users/users.service';
@@ -30,6 +31,7 @@ describe('AuthService', () => {
           provide: getRepositoryToken(UserEntity),
           useFactory: repositoryMockFactory,
         },
+        ConfigService,
       ],
     }).compile();
 
@@ -39,7 +41,7 @@ describe('AuthService', () => {
 
   it('validateUser(): should be verify user', async () => {
     const { password, ...others } = user;
-    const hashedPassword = await new Password(password).hashValue();
+    const hashedPassword = new Password(password).value();
     const passwordOmitUser = Object.assign(user, { password: hashedPassword });
 
     repository.findOne.mockReturnValue(passwordOmitUser);
@@ -48,7 +50,7 @@ describe('AuthService', () => {
   });
 
   it('signin(): should return jwt access token', async () => {
-    const hashedPassword = await new Password(user.password).hashValue();
+    const hashedPassword = new Password(user.password).value();
     const passwordOmitUser = Object.assign(user, { password: hashedPassword });
 
     repository.findOne.mockReturnValue(passwordOmitUser);
