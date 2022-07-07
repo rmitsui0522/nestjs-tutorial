@@ -12,6 +12,7 @@ import configuration from './config/configuration';
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
+      envFilePath: '.env.development.local',
     }),
     DatabaseModule,
     AuthModule,

@@ -1,14 +1,14 @@
 export default () => ({
-  session: { secret: 'SESSION_SECRET' },
+  session: { secret: process.env.SESSION_SECRET },
   database: {
     type: 'mysql',
-    host: '127.0.0.1',
-    port: 3306,
-    username: 'user',
-    password: 'password',
-    dbname: 'dev',
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    username: process.env.DATABASE_USERNAME,
+    password: process.env.DATABASE_PASSWORD,
+    dbname: process.env.DATABASE_NAME,
     logging: false,
     synchronize: true,
   },
-  auth: { jwt: { secret: 'JWT_SECRET', expiresIn: '1200s' } },
+  auth: { jwt: { secret: process.env.JWT_SECRET, expiresIn: '1200s' } },
 });
