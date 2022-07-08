@@ -64,12 +64,35 @@ export class UsersService {
     return user;
   }
 
-  public update(userName: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a ${userName} user`;
+  public async update(userName: UserEntity['userName'], dto: UpdateUserDto) {
+    const currentUser = await this.repo.findOne({
+      where: { userName },
+      relations: ['role'],
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const newUser = await this.factory.build({
+      ...currentUser,
+      roleId: currentUser.role.id,
+      ...dto,
+    });
+
+    const duplicate = await this.isExists(newUser);
+    // 更新対象自身の重複は許可
+    if (duplicate && duplicate.userName !== userName) {
+      throw new InternalServerErrorException(
+        `Duplicated '${duplicate.field}' error. Record '${duplicate.field}' must be unique.`,
+      );
+    }
+
+    return this.repo.update(currentUser.id, newUser);
   }
 
-  public remove(userName: string) {
-    return `This action removes a ${userName} user`;
+  public remove(userName: UserEntity['userName']) {
+    return this.repo.softDelete(userName);
   }
 
   private async isExists(user: UserEntity): Promise<string | null> {
