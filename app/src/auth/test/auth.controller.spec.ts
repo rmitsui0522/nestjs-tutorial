@@ -13,6 +13,8 @@ import {
   repositoryMockFactory,
 } from '../../test-util/repositoryMockFactory';
 import { user } from '../../test-util/users.seed';
+import { RoleEntity } from '../../roles/entities/role.entity';
+import { RolesService } from '../../roles/roles.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -28,6 +30,11 @@ describe('AuthController', () => {
         UsersFactory,
         {
           provide: getRepositoryToken(UserEntity),
+          useFactory: repositoryMockFactory,
+        },
+        RolesService,
+        {
+          provide: getRepositoryToken(RoleEntity),
           useFactory: repositoryMockFactory,
         },
       ],

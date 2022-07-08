@@ -6,6 +6,8 @@ import { AuthService } from './auth/auth.service';
 import { UsersService } from './users/users.service';
 import { UsersFactory } from './users/factory/users.factory';
 import { UserEntity } from './users/entities/user.entity';
+import { RolesService } from './roles/roles.service';
+import { RoleEntity } from './roles/entities/role.entity';
 import { repositoryMockFactory } from './test-util/repositoryMockFactory';
 
 describe('AppController', () => {
@@ -21,6 +23,11 @@ describe('AppController', () => {
         UsersFactory,
         {
           provide: getRepositoryToken(UserEntity),
+          useFactory: repositoryMockFactory,
+        },
+        RolesService,
+        {
+          provide: getRepositoryToken(RoleEntity),
           useFactory: repositoryMockFactory,
         },
       ],
