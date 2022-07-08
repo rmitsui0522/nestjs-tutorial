@@ -10,6 +10,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersFactory } from './factory/users.factory';
 import { UserEntity } from './entities/user.entity';
 
+type ExcludePasswordUserEntity = Omit<UserEntity, 'password'>;
+
+const USER_DUPICATE_MESSAGE = (field: string) =>
+  `Duplicated '${field}' error. Record '${field}' must be unique.`;
+const USER_NOT_FOUND_MESSAGE = 'User not found';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -24,21 +30,23 @@ export class UsersService {
     const duplicate = await this.isExists(user);
     if (duplicate) {
       throw new InternalServerErrorException(
-        `Duplicated '${duplicate}'. Record '${duplicate}' must be unique.`,
+        USER_DUPICATE_MESSAGE(duplicate.field),
       );
     }
 
     return this.repo.save(user);
   }
 
-  public findAll() {
+  public findAll(): Promise<ExcludePasswordUserEntity[]> {
     return this.repo.find({
       select: ['id', 'userName', 'email', 'created_at', 'updated_at', `role`],
       relations: ['role'],
     });
   }
 
-  public findOne(userName: string): Promise<UserEntity | null> {
+  public findOne(
+    userName: UserEntity['userName'],
+  ): Promise<ExcludePasswordUserEntity | null> {
     const user = this.repo.findOne({
       select: ['id', 'userName', 'email', 'created_at', 'updated_at', 'role'],
       where: { userName },
@@ -46,21 +54,24 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(USER_NOT_FOUND_MESSAGE);
     }
+
     return user;
   }
 
-  public findOneWithPassword(userName: string): Promise<UserEntity | null> {
-    const user = this.repo.findOne({ where: { userName } });
+  public findOneWithPassword(
+    userName: UserEntity['userName'],
+  ): Promise<UserEntity | null> {
     const user = this.repo.findOne({
       where: { userName },
       relations: ['role'],
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(USER_NOT_FOUND_MESSAGE);
     }
+
     return user;
   }
 
@@ -84,7 +95,7 @@ export class UsersService {
     // 更新対象自身の重複は許可
     if (duplicate && duplicate.userName !== userName) {
       throw new InternalServerErrorException(
-        `Duplicated '${duplicate.field}' error. Record '${duplicate.field}' must be unique.`,
+        USER_DUPICATE_MESSAGE(duplicate.field),
       );
     }
 
@@ -95,21 +106,23 @@ export class UsersService {
     return this.repo.softDelete(userName);
   }
 
-  private async isExists(user: UserEntity): Promise<string | null> {
+  private async isExists(
+    user: Omit<UserEntity, 'id'>,
+  ): Promise<{ field: string; userName: UserEntity['userName'] } | null> {
     let other: UserEntity;
 
     other = await this.repo.findOne({
       where: { userName: user.userName },
     });
     if (other) {
-      return 'UserName';
+      return { field: 'UserName', userName: user.userName };
     }
 
     other = await this.repo.findOne({
       where: { email: user.email },
     });
     if (other) {
-      return 'Email';
+      return { field: 'Email', userName: user.userName };
     }
 
     return null;

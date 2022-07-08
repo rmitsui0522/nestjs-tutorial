@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UsersService } from './users.service';
+import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -29,20 +30,20 @@ export class UsersController {
   }
 
   @Get(':userName')
-  findOne(@Param('userName') userName: string) {
+  findOne(@Param('userName') userName: UserEntity['userName']) {
     return this.usersService.findOne(userName);
   }
 
   @Patch(':userName')
   update(
-    @Param('userName') userName: string,
+    @Param('userName') userName: UserEntity['userName'],
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(userName, updateUserDto);
   }
 
   @Delete(':userName')
-  remove(@Param('userName') userName: string) {
+  remove(@Param('userName') userName: UserEntity['userName']) {
     return this.usersService.remove(userName);
   }
 }
