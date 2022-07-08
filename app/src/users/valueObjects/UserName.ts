@@ -1,5 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { IValueObject } from '../../interface/valuObject.inyerface';
+import { IValueObject } from '../../interface/valuObject.interface';
 
 export class UserName implements IValueObject {
   private _userName: string;

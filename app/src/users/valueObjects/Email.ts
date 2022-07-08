@@ -1,4 +1,4 @@
-import { IValueObject } from '../../interface/valuObject.inyerface';
+import { IValueObject } from '../../interface/valuObject.interface';
 
 export class Email implements IValueObject {
   private _email: string;

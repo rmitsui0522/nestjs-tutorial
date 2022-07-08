@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
-import { IValueObject } from '../../interface/valuObject.inyerface';
+import { IValueObject } from '../../interface/valuObject.interface';
 
 export class Password implements IValueObject {
   // private _plainTextPassword: string;
