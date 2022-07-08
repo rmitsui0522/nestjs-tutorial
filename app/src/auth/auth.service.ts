@@ -21,21 +21,23 @@ export class AuthService {
   public async validateUser(
     userName: string,
     pass: string,
-  ): Promise<UserEntity | null> {
+  ): Promise<Omit<UserEntity, 'password'> | null> {
     const user = await this.usersService.findOneWithPassword(userName);
     const isMatch = Password.compare(pass, user.password);
 
     if (user && isMatch) {
       const { password, ...result } = user;
-      return result as UserEntity;
+      return result;
     }
     return null;
   }
 
-  public async signin(dto: SigninUserDto): Promise<AuthenticatedResponse> {
+  public async issueJwtToken(
+    dto: SigninUserDto,
+  ): Promise<AuthenticatedResponse> {
     const claims: CustomClaims = {
       id: dto.id,
-      sub: dto.userName,
+      userName: dto.userName,
     };
     return {
       access_token: this.jwtService.sign(claims),
@@ -45,7 +47,7 @@ export class AuthService {
   public async signup(dto: SignupUserDto): Promise<AuthenticatedResponse> {
     const user = await this.usersService.create(dto);
     if (user) {
-      return this.signin(user);
+      return this.issueJwtToken(user);
     }
   }
 }

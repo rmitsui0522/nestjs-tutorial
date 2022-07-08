@@ -1,3 +1,4 @@
-import { UserEntity } from '../entities/user.entity';
-
-export class SigninUserDto extends UserEntity {}
+export class SigninUserDto {
+  id: number;
+  userName: string;
+}

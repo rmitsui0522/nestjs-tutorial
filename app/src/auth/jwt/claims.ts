@@ -1,4 +1,6 @@
+import { UserEntity } from '../../users/entities/user.entity';
+
 export class CustomClaims {
-  id: number;
-  sub: string;
+  id: UserEntity['id'];
+  userName: UserEntity['userName'];
 }

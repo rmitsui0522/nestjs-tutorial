@@ -1,8 +1,9 @@
-import { Controller, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { AuthService } from './auth.service';
-import { SigninUserDto } from '../users/dto/signin-user.dto';
 import { SignupUserDto } from '../users/dto/signup-user.dto';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -10,8 +11,12 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('signin')
-  async signin(@Body() dto: SigninUserDto) {
-    return this.authService.signin(dto);
+  async signin(@Req() req: Request) {
+    const user = req.user as UserEntity;
+    return this.authService.issueJwtToken({
+      id: user.id,
+      userName: user.userName,
+    });
   }
 
   @Post('signup')
