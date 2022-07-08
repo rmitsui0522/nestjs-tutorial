@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RolesService } from '../../roles/roles.service';
+import { RoleEntity } from '../../roles/entities/role.entity';
 import { UsersService } from '../users.service';
 import { UsersFactory } from '../factory/users.factory';
 import { UserEntity } from '../entities/user.entity';
@@ -10,6 +12,8 @@ import {
   repositoryMockFactory,
 } from '../../test-util/repositoryMockFactory';
 import { user } from '../../test-util/users.seed';
+import { role } from '../../test-util/roles.seed';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -24,6 +28,11 @@ describe('UsersService', () => {
           provide: getRepositoryToken(UserEntity),
           useFactory: repositoryMockFactory,
         },
+        RolesService,
+        {
+          provide: getRepositoryToken(RoleEntity),
+          useFactory: repositoryMockFactory,
+        },
       ],
     }).compile();
 
@@ -31,22 +40,26 @@ describe('UsersService', () => {
     repository = module.get(getRepositoryToken(UserEntity));
   });
 
-  it('should create a user', async () => {
+  it('create(): should create a new user', async () => {
     const dto: CreateUserDto = {
       userName: user.userName,
       email: user.email,
       password: user.password,
+      roleId: role.id,
     };
 
     repository.findOne.mockReturnValue(null);
-    repository.save.mockReturnValue(user);
+    repository.save.mockReturnValue({ ...user, role });
 
-    expect(await service.create(dto)).toEqual(user);
+    expect(await service.create(dto)).toEqual({ ...user, role });
   });
 
-  it('should find a user', () => {
-    repository.findOne.mockReturnValue(user);
+  it('findOne(): should find a user', () => {
+    repository.findOne.mockReturnValue({ ...user, role });
 
-    expect(service.findOne(user.userName)).toEqual(user);
+    expect(service.findOne(user.userName)).toEqual({ ...user, role });
+  });
+
+
   });
 });

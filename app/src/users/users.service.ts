@@ -33,14 +33,16 @@ export class UsersService {
 
   public findAll() {
     return this.repo.find({
-      select: ['id', 'userName', 'email', 'created_at', 'updated_at'],
+      select: ['id', 'userName', 'email', 'created_at', 'updated_at', `role`],
+      relations: ['role'],
     });
   }
 
   public findOne(userName: string): Promise<UserEntity | null> {
     const user = this.repo.findOne({
-      select: ['id', 'userName', 'email', 'created_at', 'updated_at'],
+      select: ['id', 'userName', 'email', 'created_at', 'updated_at', 'role'],
       where: { userName },
+      relations: ['role'],
     });
 
     if (!user) {
@@ -51,6 +53,10 @@ export class UsersService {
 
   public findOneWithPassword(userName: string): Promise<UserEntity | null> {
     const user = this.repo.findOne({ where: { userName } });
+    const user = this.repo.findOne({
+      where: { userName },
+      relations: ['role'],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');

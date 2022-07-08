@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RoleEntity } from '../../roles/entities/role.entity';
 
 @Entity('user')
 export class UserEntity {
@@ -19,6 +21,9 @@ export class UserEntity {
 
   @Column()
   readonly password: string;
+
+  @ManyToOne(() => RoleEntity, (role) => role.users)
+  readonly role: RoleEntity;
 
   @CreateDateColumn()
   readonly created_at?: Date;
