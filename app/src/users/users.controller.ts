@@ -13,8 +13,13 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RolesGuard } from '../roles/guard/roles.guard';
+import { Roles } from '../roles/decorator/roles.decorator';
+import { Role } from '../roles/enum/role.enum';
 
+@UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
+@Roles(Role.Admin)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
