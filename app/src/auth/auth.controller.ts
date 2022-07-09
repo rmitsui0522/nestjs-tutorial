@@ -2,7 +2,7 @@ import { Controller, Post, UseGuards, Body, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { AuthService } from './auth.service';
-import { SignupUserDto } from '../users/dto/signup-user.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
 
 @Controller('auth')

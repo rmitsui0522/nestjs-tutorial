@@ -6,8 +6,8 @@ import {
   UsersService,
 } from '../users/users.service';
 import { Password } from '../users/valueObjects/Password';
-import { SigninUserDto } from '../users/dto/signin-user.dto';
-import { SignupUserDto } from '../users/dto/signup-user.dto';
+import { SigninUserDto } from './dto/signin-user.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
 
 class AuthenticatedResponse {
   access_token: string;
