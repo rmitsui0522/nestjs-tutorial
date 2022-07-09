@@ -3,14 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CustomClaims } from '../jwt/claims';
-import { UsersService } from '../../users/users.service';
+import { AuthService } from '../auth.service';
+import { ExcludePasswordUserEntity } from '../../users/users.service';
+
+export const JWT_STRATEGY_KEY = 'jwt';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private config: ConfigService,
-    private usersService: UsersService,
-  ) {
+  constructor(private config: ConfigService, private authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(claims: CustomClaims) {
-    return this.usersService.findOne(claims.userName);
+  async validate(claims: CustomClaims): Promise<ExcludePasswordUserEntity> {
+    return await this.authService.validateUserByClaims(claims);
   }
 }

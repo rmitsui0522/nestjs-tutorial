@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { AuthService } from '../auth.service';
+import { JwtStrategy } from '../strategy/jwt.strategy';
 import { UsersService } from '../../users/users.service';
 import { UsersFactory } from '../../users/factory/users.factory';
 import { UserEntity } from '../../users/entities/user.entity';
@@ -15,7 +17,7 @@ import {
   repositoryMockFactory,
 } from '../../test-util/repositoryMockFactory';
 import { user } from '../../test-util/users.seed';
-import { JwtStrategy } from '../strategy/jwt.strategy';
+import { jwtServiceMockFactory } from '../../test-util/jwtServiceMockFactory';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -25,7 +27,10 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        JwtService,
+        {
+          provide: JwtService,
+          useFactory: jwtServiceMockFactory,
+        },
         JwtStrategy,
         UsersService,
         UsersFactory,
@@ -46,29 +51,49 @@ describe('AuthService', () => {
     repository = module.get(getRepositoryToken(UserEntity));
   });
 
-  it('validateUser(): should be verify user', async () => {
+  it('validateUserByLocal(): should be verify user', async () => {
     const { password, ...others } = user;
     const hashedPassword = new Password(password).value();
-    const passwordOmitUser = Object.assign(user, { password: hashedPassword });
+    const userWithPassword = Object.assign(user, { password: hashedPassword });
 
-    repository.findOne.mockReturnValue(passwordOmitUser);
+    repository.findOne.mockReturnValue(userWithPassword);
 
-    expect(await service.validateUser(user.userName, password)).toEqual(others);
+    expect(await service.validateUserByLocal(user.userName, password)).toEqual(
+      others,
+    );
   });
 
-  it('signin(): should return jwt access token', async () => {
-    const hashedPassword = new Password(user.password).value();
-    const passwordOmitUser = Object.assign(user, { password: hashedPassword });
+  it('validateUserByLocal(): should NOT be verify user', () => {
+    const { password } = user;
+    const hashedPassword = new Password(password).value();
+    const userWithPassword = Object.assign(user, { password: hashedPassword });
 
-    repository.findOne.mockReturnValue(passwordOmitUser);
+    repository.findOne.mockReturnValue(userWithPassword);
 
-    // TODO: エラー解消 "secretOrPrivateKey must have a value"
-    // expect(
-    //   typeof (await (
-    //     await service.signin(passwordOmitUser)
-    //   ).access_token),
-    // ).toEqual('string');
+    expect(
+      async () =>
+        await service.validateUserByLocal(user.userName, 'wrongpassword'),
+    ).rejects.toThrow(UnauthorizedException);
+  });
 
-    expect(typeof 'access_token').toEqual('string');
+  it('validateUserByClaims(): should be verify user', async () => {
+    const { password, ...others } = user;
+
+    repository.findOne.mockReturnValue(others);
+
+    expect(
+      await service.validateUserByClaims({
+        id: user.id,
+        userName: user.userName,
+      }),
+    ).toEqual(others);
+  });
+
+  it('issueJwtToken(): should return jwt access token', async () => {
+    expect(
+      typeof (await (
+        await service.issueJwtToken({ id: user.id, userName: user.userName })
+      ).access_token),
+    ).toEqual('string');
   });
 });

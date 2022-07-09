@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CustomClaims } from './jwt/claims';
-import { UserEntity } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
+import {
+  ExcludePasswordUserEntity,
+  UsersService,
+} from '../users/users.service';
 import { Password } from '../users/valueObjects/Password';
 import { SigninUserDto } from '../users/dto/signin-user.dto';
 import { SignupUserDto } from '../users/dto/signup-user.dto';
-import { UserNotFoundException } from '../users/exceptions/UserNotFoundException';
 
 class AuthenticatedResponse {
   access_token: string;
@@ -19,23 +20,28 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  public async validateUser(
+  public async validateUserByLocal(
     userName: string,
     pass: string,
-  ): Promise<Omit<UserEntity, 'password'> | null> {
+  ): Promise<ExcludePasswordUserEntity> {
     const user = await this.usersService.findOneWithPassword(userName);
-
-    if (!user) {
-      throw new UserNotFoundException(userName);
-    }
-
     const isMatch = Password.compare(pass, user.password);
 
-    if (isMatch) {
-      const { password, ...result } = user;
-      return result;
+    if (!isMatch) {
+      throw new UnauthorizedException();
     }
-    return null;
+
+    const { password, ...others } = user;
+
+    return others;
+  }
+
+  public async validateUserByClaims(
+    claims: CustomClaims,
+  ): Promise<ExcludePasswordUserEntity> {
+    const user = await this.usersService.findOne(claims.userName);
+
+    return user;
   }
 
   public async issueJwtToken(
@@ -45,6 +51,7 @@ export class AuthService {
       id: dto.id,
       userName: dto.userName,
     };
+
     return {
       access_token: this.jwtService.sign(claims),
     };
@@ -52,8 +59,10 @@ export class AuthService {
 
   public async signup(dto: SignupUserDto): Promise<AuthenticatedResponse> {
     const user = await this.usersService.create(dto);
-    if (user) {
-      return this.issueJwtToken(user);
-    }
+
+    return this.issueJwtToken({
+      id: user.id,
+      userName: user.userName,
+    });
   }
 }
