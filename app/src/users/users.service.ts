@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersFactory } from './factory/users.factory';
@@ -8,7 +8,7 @@ import { UserEntity } from './entities/user.entity';
 import { UserNotFoundException } from './exceptions/UserNotFoundException';
 import { UserDuplicateException } from './exceptions/UserDuplicateException';
 
-type ExcludePasswordUserEntity = Omit<UserEntity, 'password'>;
+export type ExcludePasswordUserEntity = Omit<UserEntity, 'password'>;
 
 @Injectable()
 export class UsersService {
@@ -27,20 +27,20 @@ export class UsersService {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return this.repo.save(user);
+    return await this.repo.save(user);
   }
 
-  public findAll(): Promise<ExcludePasswordUserEntity[]> {
-    return this.repo.find({
+  public async findAll(): Promise<ExcludePasswordUserEntity[]> {
+    return await this.repo.find({
       select: ['id', 'userName', 'email', 'created_at', 'updated_at', `role`],
       relations: ['role'],
     });
   }
 
-  public findOne(
+  public async findOne(
     userName: UserEntity['userName'],
-  ): Promise<ExcludePasswordUserEntity | null> {
-    const user = this.repo.findOne({
+  ): Promise<ExcludePasswordUserEntity> {
+    const user = await this.repo.findOne({
       select: ['id', 'userName', 'email', 'created_at', 'updated_at', 'role'],
       where: { userName },
       relations: ['role'],
@@ -53,10 +53,10 @@ export class UsersService {
     return user;
   }
 
-  public findOneWithPassword(
+  public async findOneWithPassword(
     userName: UserEntity['userName'],
-  ): Promise<UserEntity | null> {
-    const user = this.repo.findOne({
+  ): Promise<UserEntity> {
+    const user = await this.repo.findOne({
       where: { userName },
       relations: ['role'],
     });
@@ -69,7 +69,10 @@ export class UsersService {
   }
 
   // TODO: トランザクション処理実装
-  public async update(userName: UserEntity['userName'], dto: UpdateUserDto) {
+  public async update(
+    userName: UserEntity['userName'],
+    dto: UpdateUserDto,
+  ): Promise<UpdateResult> {
     const currentUser = await this.repo.findOne({
       where: { userName },
       relations: ['role'],
@@ -91,11 +94,11 @@ export class UsersService {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return this.repo.update(currentUser.id, newUser);
+    return await this.repo.update(currentUser.id, newUser);
   }
 
-  public remove(userName: UserEntity['userName']) {
-    return this.repo.softDelete(userName);
+  public async remove(userName: UserEntity['userName']): Promise<DeleteResult> {
+    return await this.repo.softDelete(userName);
   }
 
   private async isExists(

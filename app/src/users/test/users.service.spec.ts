@@ -54,10 +54,10 @@ describe('UsersService', () => {
     expect(await service.create(dto)).toEqual({ ...user, role });
   });
 
-  it('findOne(): should find a user', () => {
+  it('findOne(): should find a user', async () => {
     repository.findOne.mockReturnValue({ ...user, role });
 
-    expect(service.findOne(user.userName)).toEqual({ ...user, role });
+    expect(await service.findOne(user.userName)).toEqual({ ...user, role });
   });
 
   it('update(): should update a user', async () => {

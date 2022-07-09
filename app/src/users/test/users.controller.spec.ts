@@ -40,8 +40,11 @@ describe('UsersController', () => {
     repository = module.get(getRepositoryToken(UserEntity));
   });
 
-  it('findOne(): should find a user', () => {
+  it('findOne(): should find a user', async () => {
     repository.findOne.mockReturnValue({ ...user, role });
-    expect(controller.findOne(user.userName)).toEqual({ ...user, role });
+    expect(await controller.findOne(user.userName)).toEqual({
+      ...user,
+      role,
+    });
   });
 });
