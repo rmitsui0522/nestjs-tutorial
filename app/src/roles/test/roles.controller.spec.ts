@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { RolesController } from '../roles.controller';
 import { RolesService } from '../roles.service';
 import { RoleEntity } from '../entities/role.entity';
-import { CreateRoleDto } from '../dto/create-role.dto';
 import {
   MockType,
   repositoryMockFactory,
@@ -31,12 +30,9 @@ describe('RolesController', () => {
     repository = module.get(getRepositoryToken(RoleEntity));
   });
 
-  it('create(): should create a new role', async () => {
-    const dto: CreateRoleDto = { name: role.name };
+  it('findOne(): should find a role', async () => {
+    repository.findOne.mockReturnValue(role);
 
-    repository.findOne.mockReturnValue(null);
-    repository.save.mockReturnValue(role);
-
-    expect(controller.create(dto)).toBeDefined();
+    expect(await controller.findOne(role.id.toString())).toEqual(role);
   });
 });
