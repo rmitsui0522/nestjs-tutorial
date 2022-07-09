@@ -6,6 +6,7 @@ import { UsersService } from '../users/users.service';
 import { Password } from '../users/valueObjects/Password';
 import { SigninUserDto } from '../users/dto/signin-user.dto';
 import { SignupUserDto } from '../users/dto/signup-user.dto';
+import { UserNotFoundException } from '../users/exceptions/UserNotFoundException';
 
 class AuthenticatedResponse {
   access_token: string;
@@ -23,9 +24,14 @@ export class AuthService {
     pass: string,
   ): Promise<Omit<UserEntity, 'password'> | null> {
     const user = await this.usersService.findOneWithPassword(userName);
+
+    if (!user) {
+      throw new UserNotFoundException(userName);
+    }
+
     const isMatch = Password.compare(pass, user.password);
 
-    if (user && isMatch) {
+    if (isMatch) {
       const { password, ...result } = user;
       return result;
     }

@@ -1,20 +1,14 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersFactory } from './factory/users.factory';
 import { UserEntity } from './entities/user.entity';
+import { UserNotFoundException } from './exceptions/UserNotFoundException';
+import { UserDuplicateException } from './exceptions/UserDuplicateException';
 
 type ExcludePasswordUserEntity = Omit<UserEntity, 'password'>;
-
-const USER_DUPICATE_MESSAGE = (field: string) =>
-  `Duplicated '${field}' error. Record '${field}' must be unique.`;
-const USER_NOT_FOUND_MESSAGE = 'User not found';
 
 @Injectable()
 export class UsersService {
@@ -24,14 +18,13 @@ export class UsersService {
     private factory: UsersFactory,
   ) {}
 
+  // TODO: トランザクション処理実装
   public async create(dto: CreateUserDto): Promise<UserEntity> {
     const user = await this.factory.build(dto);
 
     const duplicate = await this.isExists(user);
     if (duplicate) {
-      throw new InternalServerErrorException(
-        USER_DUPICATE_MESSAGE(duplicate.field),
-      );
+      throw new UserDuplicateException(duplicate.field);
     }
 
     return this.repo.save(user);
@@ -54,7 +47,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_MESSAGE);
+      throw new UserNotFoundException(userName);
     }
 
     return user;
@@ -69,12 +62,13 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(USER_NOT_FOUND_MESSAGE);
+      throw new UserNotFoundException(userName);
     }
 
     return user;
   }
 
+  // TODO: トランザクション処理実装
   public async update(userName: UserEntity['userName'], dto: UpdateUserDto) {
     const currentUser = await this.repo.findOne({
       where: { userName },
@@ -82,7 +76,7 @@ export class UsersService {
     });
 
     if (!currentUser) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundException(userName);
     }
 
     const newUser = await this.factory.build({
@@ -94,9 +88,7 @@ export class UsersService {
     const duplicate = await this.isExists(newUser);
     // 更新対象自身の重複は許可
     if (duplicate && duplicate.userName !== userName) {
-      throw new InternalServerErrorException(
-        USER_DUPICATE_MESSAGE(duplicate.field),
-      );
+      throw new UserDuplicateException(duplicate.field);
     }
 
     return this.repo.update(currentUser.id, newUser);
