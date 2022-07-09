@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
+import { Role } from '../enum/role.enum';
 
 @Entity('role')
 export class RoleEntity {
@@ -7,7 +8,7 @@ export class RoleEntity {
   readonly id: number;
 
   @Column({ unique: true })
-  readonly name: string;
+  readonly name: Role;
 
   @OneToMany(() => UserEntity, (user) => user.role)
   readonly users: UserEntity[];
