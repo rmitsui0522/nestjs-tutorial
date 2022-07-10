@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult, DataSource } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersFactory } from './factory/users.factory';
@@ -16,18 +16,22 @@ export class UsersService {
     @InjectRepository(UserEntity)
     private repo: Repository<UserEntity>,
     private factory: UsersFactory,
+    private connection: DataSource,
   ) {}
 
-  // TODO: トランザクション処理実装
-  public async create(dto: CreateUserDto): Promise<UserEntity> {
+  public async create(dto: CreateUserDto): Promise<ExcludePasswordUserEntity> {
     const user = await this.factory.build(dto);
 
+    // 重複チェック
     const duplicate = await this.isExists(user);
     if (duplicate) {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return await this.repo.save(user);
+    return this.connection.transaction(async (entityManager) => {
+      await entityManager.save(user);
+      return await this.findOne(user.userName);
+    });
   }
 
   public async findAll(): Promise<ExcludePasswordUserEntity[]> {
@@ -68,11 +72,10 @@ export class UsersService {
     return user;
   }
 
-  // TODO: トランザクション処理実装
   public async update(
     userName: UserEntity['userName'],
     dto: UpdateUserDto,
-  ): Promise<UpdateResult> {
+  ): Promise<ExcludePasswordUserEntity> {
     const currentUser = await this.repo.findOne({
       where: { userName },
       relations: ['role'],
@@ -88,17 +91,23 @@ export class UsersService {
       ...dto,
     });
 
+    // 重複チェック
     const duplicate = await this.isExists(newUser);
     // 更新対象自身の重複は許可
     if (duplicate && duplicate.userName !== userName) {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return await this.repo.update(currentUser.id, newUser);
+    return this.connection.transaction(async (entityManager) => {
+      await entityManager.update(UserEntity, currentUser.id, newUser);
+      return await this.findOne(userName);
+    });
   }
 
   public async remove(userName: UserEntity['userName']): Promise<DeleteResult> {
-    return await this.repo.softDelete(userName);
+    return this.connection.transaction(async (entityManager) => {
+      return await entityManager.softDelete(UserEntity, userName);
+    });
   }
 
   private async isExists(

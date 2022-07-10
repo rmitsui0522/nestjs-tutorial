@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { RolesService } from '../../roles/roles.service';
 import { RoleEntity } from '../../roles/entities/role.entity';
 import { UsersService } from '../users.service';
@@ -14,10 +14,12 @@ import {
 import { user } from '../../test-util/users.seed';
 import { role } from '../../test-util/roles.seed';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { dataSourceMockFactory } from '../../test-util/dataSourceMockFactory';
 
 describe('UsersService', () => {
   let service: UsersService;
   let repository: MockType<Repository<UserEntity>>;
+  let connection: MockType<DataSource>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,11 +35,13 @@ describe('UsersService', () => {
           provide: getRepositoryToken(RoleEntity),
           useFactory: repositoryMockFactory,
         },
+        { provide: DataSource, useFactory: dataSourceMockFactory },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
     repository = module.get(getRepositoryToken(UserEntity));
+    connection = module.get(DataSource);
   });
 
   it('create(): should create a new user', async () => {
@@ -49,7 +53,7 @@ describe('UsersService', () => {
     };
 
     repository.findOne.mockReturnValue(null);
-    repository.save.mockReturnValue({ ...user, role });
+    connection.transaction.mockReturnValue({ ...user, role });
 
     expect(await service.create(dto)).toEqual({ ...user, role });
   });
@@ -64,7 +68,7 @@ describe('UsersService', () => {
     const dto: UpdateUserDto = {};
 
     repository.findOne.mockReturnValue({ ...user, role });
-    repository.update.mockReturnValue({ ...user, ...dto });
+    connection.transaction.mockReturnValue({ ...user, ...dto });
 
     expect(await service.update(user.userName, dto)).toEqual({
       ...user,
