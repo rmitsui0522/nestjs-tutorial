@@ -1,20 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { RolesService } from '../../roles/roles.service';
-import { RoleEntity } from '../../roles/entities/role.entity';
 import { UsersService } from '../users.service';
-import { UsersFactory } from '../factory/users.factory';
 import { UserEntity } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
-import {
-  MockType,
-  repositoryMockFactory,
-} from '../../test-util/repositoryMockFactory';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { MockType, TestModuleBuilder } from '../../test-util/TestModule';
 import { user } from '../../test-util/users.seed';
 import { role } from '../../test-util/roles.seed';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { dataSourceMockFactory } from '../../test-util/dataSourceMockFactory';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -22,22 +15,7 @@ describe('UsersService', () => {
   let connection: MockType<DataSource>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        UsersFactory,
-        {
-          provide: getRepositoryToken(UserEntity),
-          useFactory: repositoryMockFactory,
-        },
-        RolesService,
-        {
-          provide: getRepositoryToken(RoleEntity),
-          useFactory: repositoryMockFactory,
-        },
-        { provide: DataSource, useFactory: dataSourceMockFactory },
-      ],
-    }).compile();
+    const module: TestingModule = await new TestModuleBuilder().build();
 
     service = module.get<UsersService>(UsersService);
     repository = module.get(getRepositoryToken(UserEntity));

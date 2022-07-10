@@ -1,51 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { AuthService } from '../auth.service';
-import { JwtStrategy } from '../strategy/jwt.strategy';
-import { UsersService } from '../../users/users.service';
-import { UsersFactory } from '../../users/factory/users.factory';
 import { UserEntity } from '../../users/entities/user.entity';
 import { Password } from '../../users/valueObjects/Password';
-import { RolesService } from '../../roles/roles.service';
-import { RoleEntity } from '../../roles/entities/role.entity';
-import {
-  MockType,
-  repositoryMockFactory,
-} from '../../test-util/repositoryMockFactory';
 import { user } from '../../test-util/users.seed';
-import { jwtServiceMockFactory } from '../../test-util/jwtServiceMockFactory';
+import { TestModuleBuilder, MockType } from '../../test-util/TestModule';
 
 describe('AuthService', () => {
   let service: AuthService;
   let repository: MockType<Repository<UserEntity>>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        {
-          provide: JwtService,
-          useFactory: jwtServiceMockFactory,
-        },
-        JwtStrategy,
-        UsersService,
-        UsersFactory,
-        {
-          provide: getRepositoryToken(UserEntity),
-          useFactory: repositoryMockFactory,
-        },
-        RolesService,
-        {
-          provide: getRepositoryToken(RoleEntity),
-          useFactory: repositoryMockFactory,
-        },
-        ConfigService,
-      ],
-    }).compile();
+    const module: TestingModule = await new TestModuleBuilder().build();
 
     service = module.get<AuthService>(AuthService);
     repository = module.get(getRepositoryToken(UserEntity));

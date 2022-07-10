@@ -1,8 +1,5 @@
 import { JwtService } from '@nestjs/jwt';
-
-export type MockType<T> = {
-  [P in keyof T]?: jest.Mock<{}>;
-};
+import { MockType } from './TestModule';
 
 export const jwtServiceMockFactory: () => MockType<JwtService> = jest.fn(
   () => ({

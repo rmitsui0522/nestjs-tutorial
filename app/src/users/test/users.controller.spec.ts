@@ -1,16 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RolesService } from '../../roles/roles.service';
-import { RoleEntity } from '../../roles/entities/role.entity';
 import { UserEntity } from '../entities/user.entity';
 import { UsersController } from '../users.controller';
-import { UsersService } from '../users.service';
-import { UsersFactory } from '../factory/users.factory';
-import {
-  MockType,
-  repositoryMockFactory,
-} from '../../test-util/repositoryMockFactory';
+import { TestModuleBuilder, MockType } from '../../test-util/TestModule';
 import { user } from '../../test-util/users.seed';
 import { role } from '../../test-util/roles.seed';
 
@@ -19,22 +12,7 @@ describe('UsersController', () => {
   let repository: MockType<Repository<UserEntity>>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
-      providers: [
-        UsersService,
-        UsersFactory,
-        {
-          provide: getRepositoryToken(UserEntity),
-          useFactory: repositoryMockFactory,
-        },
-        RolesService,
-        {
-          provide: getRepositoryToken(RoleEntity),
-          useFactory: repositoryMockFactory,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await new TestModuleBuilder().build();
 
     controller = module.get<UsersController>(UsersController);
     repository = module.get(getRepositoryToken(UserEntity));
