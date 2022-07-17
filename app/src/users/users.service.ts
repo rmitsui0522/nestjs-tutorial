@@ -33,10 +33,20 @@ export class UsersService {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return this.connection.transaction(async (entityManager) => {
-      await entityManager.save(user);
-      return await this.findOne(user.userName);
-    });
+    const qr = this.connection.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      await qr.manager.save(UserEntity, user);
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+    } finally {
+      await qr.release();
+    }
+
+    return await this.findOne({ userName: user.userName });
   }
 
   public async findAll(): Promise<ExcludePasswordUserEntity[]> {
@@ -92,13 +102,37 @@ export class UsersService {
       throw new UserDuplicateException(duplicate.field);
     }
 
-    return this.connection.transaction(async (entityManager) => {
-      await entityManager.update(UserEntity, currentUser.id, newUser);
-      return await this.findOne(userName);
-    });
+    const qr = this.connection.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      await qr.manager.update(UserEntity, targetUser.id, newUser);
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+    } finally {
+      await qr.release();
+    }
+
+    return await this.findOne({ id });
   }
 
   public async remove(id: UserEntity['id']): Promise<DeleteResult> {
+    const qr = this.connection.createQueryRunner();
+
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      await qr.manager.softDelete(UserEntity, id);
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+    } finally {
+      await qr.release();
+    }
+
+    return;
   }
 
   private async isExists(
