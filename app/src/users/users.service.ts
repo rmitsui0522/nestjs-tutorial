@@ -42,48 +42,41 @@ export class UsersService {
   }
 
   public async findOne(
-    userName: UserEntity['userName'],
+    findOptionsWhere: FindOptionsWhere<UserEntity>,
   ): Promise<ExcludePasswordUserEntity> {
     const user = await this.repo.findOne({
       select: ['id', 'userName', 'email', 'created_at', 'updated_at', 'role'],
-      where: { userName },
       relations: ['role'],
+      where: findOptionsWhere,
     });
 
     if (!user) {
-      throw new UserNotFoundException(userName);
+      throw new UserNotFoundException();
     }
 
     return user;
   }
 
   public async findOneWithPassword(
-    userName: UserEntity['userName'],
+    findOptionsWhere: FindOptionsWhere<UserEntity>,
   ): Promise<UserEntity> {
     const user = await this.repo.findOne({
-      where: { userName },
       relations: ['role'],
+      where: findOptionsWhere,
     });
 
     if (!user) {
-      throw new UserNotFoundException(userName);
+      throw new UserNotFoundException();
     }
 
     return user;
   }
 
   public async update(
-    userName: UserEntity['userName'],
+    id: UserEntity['id'],
     dto: UpdateUserDto,
   ): Promise<ExcludePasswordUserEntity> {
-    const currentUser = await this.repo.findOne({
-      where: { userName },
-      relations: ['role'],
-    });
-
-    if (!currentUser) {
-      throw new UserNotFoundException(userName);
-    }
+    const targetUser = await this.findOne({ id });
 
     const newUser = await this.factory.build({
       ...currentUser,
@@ -104,10 +97,7 @@ export class UsersService {
     });
   }
 
-  public async remove(userName: UserEntity['userName']): Promise<DeleteResult> {
-    return this.connection.transaction(async (entityManager) => {
-      return await entityManager.softDelete(UserEntity, userName);
-    });
+  public async remove(id: UserEntity['id']): Promise<DeleteResult> {
   }
 
   private async isExists(

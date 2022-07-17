@@ -3,10 +3,10 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UsersService } from './users.service';
@@ -34,21 +34,23 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':userName')
-  findOne(@Param('userName') userName: UserEntity['userName']) {
-    return this.usersService.findOne(userName);
+  @Get(':id')
+  findOne(@Param('id') id: UserEntity['id']) {
+    return this.usersService.findOne({ id });
   }
 
-  @Patch(':userName')
+  @Permissions(Permission.Writable)
+  @Put(':id')
   update(
-    @Param('userName') userName: UserEntity['userName'],
+    @Param('id') id: UserEntity['id'],
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(userName, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(':userName')
-  remove(@Param('userName') userName: UserEntity['userName']) {
-    return this.usersService.remove(userName);
+  @Permissions(Permission.Writable)
+  @Delete(':id')
+  remove(@Param('id') id: UserEntity['id']) {
+    return this.usersService.remove(id);
   }
 }
