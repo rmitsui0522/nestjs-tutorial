@@ -19,6 +19,7 @@ export class UsersFactory {
     const email = new Email(dto.email).value();
     const password = new Password(dto.password).value();
 
+    // TODO: roleIdがfalsyであるときのエラーハンドリング
     const role = await this.rolesService.findOne(dto.roleId);
 
     return { userName, email, password, role };

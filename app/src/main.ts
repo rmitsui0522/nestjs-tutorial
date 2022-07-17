@@ -9,8 +9,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
+  // TODO: logger実装
+
   app.use(helmet());
 
+  // TODO: session/cookieへ認証情報を保存
   app.use(cookieParser());
   app.use(
     session({

@@ -18,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // TODO: リフレッシュトークン実装
   async validate(claims: CustomClaims): Promise<ExcludePasswordUserEntity> {
     return await this.authService.validateUserByClaims(claims);
   }
