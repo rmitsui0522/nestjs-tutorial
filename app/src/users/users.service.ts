@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository, UpdateResult, DataSource } from 'typeorm';
+import {
+  DeleteResult,
+  Repository,
+  DataSource,
+  FindOptionsWhere,
+} from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersFactory } from './factory/users.factory';
@@ -20,7 +25,7 @@ export class UsersService {
   ) {}
 
   public async create(dto: CreateUserDto): Promise<ExcludePasswordUserEntity> {
-    const user = await this.factory.build(dto);
+    const user = await this.factory.buildNewUser(dto);
 
     // 重複チェック
     const duplicate = await this.isExists(user);
@@ -78,16 +83,12 @@ export class UsersService {
   ): Promise<ExcludePasswordUserEntity> {
     const targetUser = await this.findOne({ id });
 
-    const newUser = await this.factory.build({
-      ...currentUser,
-      roleId: currentUser.role.id,
-      ...dto,
-    });
+    const newUser = await this.factory.buildUpdateUser(dto, targetUser);
 
     // 重複チェック
     const duplicate = await this.isExists(newUser);
     // 更新対象自身の重複は許可
-    if (duplicate && duplicate.userName !== userName) {
+    if (duplicate && duplicate.userName !== newUser.userName) {
       throw new UserDuplicateException(duplicate.field);
     }
 
@@ -101,7 +102,10 @@ export class UsersService {
   }
 
   private async isExists(
-    user: Omit<UserEntity, 'id'>,
+    user: Partial<UserEntity> & {
+      email: UserEntity['email'];
+      userName: UserEntity['userName'];
+    },
   ): Promise<{ field: string; userName: UserEntity['userName'] } | null> {
     let other: UserEntity;
 
