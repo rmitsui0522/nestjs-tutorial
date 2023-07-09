@@ -13,17 +13,18 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { RolesGuard } from '../roles/guard/roles.guard';
-import { Roles } from '../roles/decorator/roles.decorator';
-import { Role } from '../roles/enum/role.enum';
+import { PermissionsGuard } from '../permissions/permissions.guard';
+import { Permissions } from '../permissions/permissions.decorator';
+import { Permission } from '../permissions/permisson.enum';
 
-@UseGuards(RolesGuard)
+@Permissions(Permission.UsersReadable)
+@UseGuards(PermissionsGuard)
 @UseGuards(JwtAuthGuard)
-@Roles(Role.Admin)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Permissions(Permission.UsersReadable)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -39,7 +40,7 @@ export class UsersController {
     return this.usersService.findOne({ id });
   }
 
-  @Permissions(Permission.Writable)
+  @Permissions(Permission.UsersWritable)
   @Put(':id')
   update(
     @Param('id') id: UserEntity['id'],
@@ -48,7 +49,7 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Permissions(Permission.Writable)
+  @Permissions(Permission.UsersWritable)
   @Delete(':id')
   remove(@Param('id') id: UserEntity['id']) {
     return this.usersService.remove(id);
